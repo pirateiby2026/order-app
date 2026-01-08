@@ -3,6 +3,8 @@ import './MenuCard.css';
 
 function MenuCard({ menu, onAddToCart }) {
   const [selectedOptions, setSelectedOptions] = useState([]);
+  const [imageError, setImageError] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleOptionChange = (optionId) => {
     setSelectedOptions(prev => {
@@ -22,7 +24,15 @@ function MenuCard({ menu, onAddToCart }) {
     return menu.price + optionPrice;
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e) => {
+    // 중복 클릭 방지
+    if (isAdding) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsAdding(true);
+    
     const selectedOptionsData = menu.options.filter(opt => 
       selectedOptions.includes(opt.id)
     );
@@ -38,14 +48,28 @@ function MenuCard({ menu, onAddToCart }) {
 
     // 옵션 초기화
     setSelectedOptions([]);
+    
+    // 잠시 후 버튼 활성화 (중복 클릭 방지)
+    setTimeout(() => {
+      setIsAdding(false);
+    }, 300);
   };
 
   return (
     <div className="menu-card">
       <div className="menu-image">
-        <div className="image-placeholder">
-          <span>이미지</span>
-        </div>
+        {menu.image && !imageError ? (
+          <img 
+            src={menu.image} 
+            alt={menu.name}
+            className="menu-image-img"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="image-placeholder">
+            <span>이미지</span>
+          </div>
+        )}
       </div>
       <div className="menu-info">
         <h3 className="menu-name">{menu.name}</h3>
@@ -72,7 +96,11 @@ function MenuCard({ menu, onAddToCart }) {
         <div className="menu-total-price">
           총: {calculateTotalPrice().toLocaleString()}원
         </div>
-        <button className="add-to-cart-button" onClick={handleAddToCart}>
+        <button 
+          className="add-to-cart-button" 
+          onClick={handleAddToCart}
+          disabled={isAdding}
+        >
           담기
         </button>
       </div>

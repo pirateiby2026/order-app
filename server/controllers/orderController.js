@@ -216,5 +216,55 @@ export const orderController = {
         error: '주문 통계를 불러오는데 실패했습니다.'
       });
     }
+  },
+
+  // 주문 취소
+  async cancelOrder(req, res) {
+    try {
+      const { id } = req.params;
+      console.log('주문 취소 요청 - 원본 ID:', id, '타입:', typeof id);
+      
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          error: '주문 ID가 필요합니다.'
+        });
+      }
+      
+      // 주문 ID를 숫자로 변환하여 검증
+      const orderId = parseInt(id, 10);
+      if (isNaN(orderId)) {
+        return res.status(400).json({
+          success: false,
+          error: '유효하지 않은 주문 ID입니다.'
+        });
+      }
+      
+      console.log('주문 취소 처리 시작 - 변환된 ID:', orderId);
+      await Order.cancel(orderId);
+      
+      console.log('주문 취소 성공');
+      res.json({
+        success: true,
+        message: '주문이 취소되었습니다.'
+      });
+    } catch (error) {
+      console.error('주문 취소 오류:', error);
+      console.error('에러 스택:', error.stack);
+      
+      if (error.message.includes('찾을 수 없습니다') || 
+          error.message.includes('취소할 수 없습니다') ||
+          error.message.includes('유효하지 않은')) {
+        return res.status(400).json({
+          success: false,
+          error: error.message
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: error.message || '주문 취소에 실패했습니다.'
+      });
+    }
   }
 };

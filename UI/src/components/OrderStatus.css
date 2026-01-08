@@ -99,6 +99,118 @@
   color: #6b7280;
 }
 
+.cancel-button {
+  border-color: #dc2626 !important;
+  color: #dc2626 !important;
+}
+
+.cancel-button:hover {
+  background-color: #dc2626 !important;
+  color: white !important;
+}
+
+.order-section {
+  margin-bottom: 2rem;
+}
+
+.order-section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.order-date-group {
+  margin-bottom: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f9fafb;
+}
+
+.order-date-header {
+  padding: 1rem;
+  background-color: #f3f4f6;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  transition: background-color 0.2s;
+  user-select: none;
+}
+
+.order-date-header:hover {
+  background-color: #e5e7eb;
+}
+
+.order-date-icon {
+  font-size: 0.875rem;
+  color: #6b7280;
+  width: 1rem;
+  text-align: center;
+  transition: transform 0.2s;
+  margin-top: 0.125rem;
+}
+
+.order-date-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.order-date-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.order-date-text {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.order-date-count {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.order-date-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.order-date-menu-counts {
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.order-date-total-info {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.order-date-content {
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.order-item-completed {
+  border-left: 3px solid #10b981;
+  background-color: #f0fdf4;
+}
+
+.order-item-completed .order-info {
+  opacity: 0.9;
+}
+
 @media (max-width: 768px) {
   .order-item {
     flex-direction: column;

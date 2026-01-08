@@ -261,5 +261,100 @@ export const Order = {
       preparingOrders: parseInt(result.rows[0].preparing_orders),
       completedOrders: parseInt(result.rows[0].completed_orders)
     };
+  },
+
+  // 주문 취소 (재고 복구 포함)
+  async cancel(id) {
+    const client = await pool.connect();
+    try {
+      // 주문 ID를 숫자로 변환
+      const orderId = parseInt(id, 10);
+      if (isNaN(orderId)) {
+        throw new Error('유효하지 않은 주문 ID입니다.');
+      }
+
+      console.log('Order.cancel 호출, 주문 ID:', orderId);
+      await client.query('BEGIN');
+
+      // 1. 주문 정보 조회 (트랜잭션 내에서 직접 쿼리)
+      const orderResult = await client.query(
+        `SELECT 
+          id,
+          order_time,
+          total_amount,
+          status,
+          created_at,
+          updated_at
+         FROM orders
+         WHERE id = $1`,
+        [orderId]
+      );
+
+      if (orderResult.rows.length === 0) {
+        throw new Error('주문을 찾을 수 없습니다.');
+      }
+
+      const order = orderResult.rows[0];
+      console.log('조회된 주문:', `ID: ${order.id}, 상태: ${order.status}`);
+
+      // 2. 취소 가능한 상태인지 확인 (completed 상태는 취소 불가)
+      if (order.status === 'completed') {
+        throw new Error('완료된 주문은 취소할 수 없습니다.');
+      }
+
+      // 3. 주문 아이템 조회 (트랜잭션 내에서)
+      const itemsResult = await client.query(
+        `SELECT 
+          oi.id,
+          oi.menu_id,
+          oi.menu_name,
+          oi.quantity,
+          oi.item_price,
+          oi.total_price
+         FROM order_items oi
+         WHERE oi.order_id = $1
+         ORDER BY oi.id`,
+        [orderId]
+      );
+
+      const items = itemsResult.rows;
+      console.log('주문 아이템 수:', items.length);
+
+      // 4. 주문 아이템의 재고 복구 (고객이 주문 전 상태로 복귀)
+      if (items.length > 0) {
+        console.log('재고 복구 시작');
+        for (const item of items) {
+          const updateResult = await client.query(
+            `UPDATE menus 
+             SET stock = stock + $1, updated_at = CURRENT_TIMESTAMP 
+             WHERE id = $2
+             RETURNING id, stock`,
+            [item.quantity, item.menu_id]
+          );
+          
+          if (updateResult.rows.length > 0) {
+            console.log(`재고 복구: 메뉴 ID ${item.menu_id}, 수량 +${item.quantity}, 현재 재고: ${updateResult.rows[0].stock}`);
+          } else {
+            console.warn(`재고 복구 실패: 메뉴 ID ${item.menu_id}를 찾을 수 없습니다.`);
+          }
+        }
+      }
+
+      // 5. 주문 삭제 (CASCADE로 order_items와 order_item_options도 함께 삭제됨)
+      const deleteResult = await client.query('DELETE FROM orders WHERE id = $1 RETURNING id', [orderId]);
+      if (deleteResult.rows.length === 0) {
+        throw new Error('주문 삭제에 실패했습니다.');
+      }
+      console.log('주문 삭제 완료');
+
+      await client.query('COMMIT');
+      return { success: true };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('Order.cancel 에러:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 };

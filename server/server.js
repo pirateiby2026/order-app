@@ -7,6 +7,7 @@ import { pool } from './config/database.js';
 dotenv.config();
 
 const app = express();
+// Render.com은 PORT 환경 변수를 자동으로 설정하므로 이를 사용
 const PORT = process.env.PORT || 3000;
 
 // 미들웨어 설정
@@ -34,8 +35,9 @@ app.use('/api/options', optionRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/inventory', inventoryRoutes);
 
-// 404 핸들러
+// 404 핸들러 (모든 라우트 이후에 위치)
 app.use((req, res) => {
+  console.log(`[404 핸들러] 요청한 경로를 찾을 수 없음: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
     success: false,
     error: '요청한 리소스를 찾을 수 없습니다.'

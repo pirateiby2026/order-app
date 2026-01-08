@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+// 환경 변수에서 API URL 가져오기 (배포 시 사용)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 // API 호출 헬퍼 함수
 async function apiCall(url, options = {}) {
@@ -65,13 +66,33 @@ export const optionAPI = {
 export const orderAPI = {
   // 주문 생성
   async createOrder(items) {
-    return await apiCall(`${API_BASE_URL}/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ items })
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ items })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        // 재고 부족 에러의 경우 details도 함께 전달
+        const error = new Error(data.error || '주문 생성에 실패했습니다.');
+        if (data.details) {
+          error.details = data.details;
+        }
+        throw error;
+      }
+      
+      return data.data;
+    } catch (error) {
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error('서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인하세요.');
+      }
+      throw error;
+    }
   },
 
   // 모든 주문 조회
@@ -101,6 +122,55 @@ export const orderAPI = {
   // 주문 통계 조회
   async getOrderStatistics() {
     return await apiCall(`${API_BASE_URL}/orders/statistics`);
+  },
+
+  // 주문 취소
+  async cancelOrder(id) {
+    try {
+      if (!id) {
+        throw new Error('주문 ID가 필요합니다.');
+      }
+      
+      const url = `${API_BASE_URL}/orders/${id}/cancel`;
+      console.log('주문 취소 API 호출:', url);
+      
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('주문 취소 응답 상태:', response.status);
+      
+      if (!response.ok) {
+        // 404 또는 다른 HTTP 에러 처리
+        if (response.status === 404) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('404 에러 응답:', errorData);
+          throw new Error(errorData.error || '주문을 찾을 수 없습니다.');
+        }
+        
+        const errorData = await response.json().catch(() => ({}));
+        console.error('에러 응답:', errorData);
+        throw new Error(errorData.error || `주문 취소에 실패했습니다. (${response.status})`);
+      }
+      
+      const data = await response.json();
+      console.log('주문 취소 성공:', data);
+      
+      if (!data.success) {
+        throw new Error(data.error || '주문 취소에 실패했습니다.');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('주문 취소 API 에러:', error);
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error('서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인하세요.');
+      }
+      throw error;
+    }
   }
 };
 

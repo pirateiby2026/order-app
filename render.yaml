@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: coffee-order-app-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+
+databases:
+  - name: coffee-order-app-db
+    databaseName: coffee_order_app
+    user: coffee_order_app_user
+    plan: free
