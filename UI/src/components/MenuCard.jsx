@@ -4,19 +4,19 @@ import './MenuCard.css';
 function MenuCard({ menu, onAddToCart }) {
   const [selectedOptions, setSelectedOptions] = useState([]);
 
-  const handleOptionChange = (optionName) => {
+  const handleOptionChange = (optionId) => {
     setSelectedOptions(prev => {
-      if (prev.includes(optionName)) {
-        return prev.filter(name => name !== optionName);
+      if (prev.includes(optionId)) {
+        return prev.filter(id => id !== optionId);
       } else {
-        return [...prev, optionName];
+        return [...prev, optionId];
       }
     });
   };
 
   const calculateTotalPrice = () => {
-    const optionPrice = selectedOptions.reduce((total, optionName) => {
-      const option = menu.options.find(opt => opt.name === optionName);
+    const optionPrice = selectedOptions.reduce((total, optionId) => {
+      const option = menu.options.find(opt => opt.id === optionId);
       return total + (option ? option.price : 0);
     }, 0);
     return menu.price + optionPrice;
@@ -24,7 +24,7 @@ function MenuCard({ menu, onAddToCart }) {
 
   const handleAddToCart = () => {
     const selectedOptionsData = menu.options.filter(opt => 
-      selectedOptions.includes(opt.name)
+      selectedOptions.includes(opt.id)
     );
     
     onAddToCart({
@@ -55,11 +55,11 @@ function MenuCard({ menu, onAddToCart }) {
       {menu.options && menu.options.length > 0 && (
         <div className="menu-options">
           {menu.options.map((option) => (
-            <label key={option.name} className="option-checkbox">
+            <label key={option.id} className="option-checkbox">
               <input
                 type="checkbox"
-                checked={selectedOptions.includes(option.name)}
-                onChange={() => handleOptionChange(option.name)}
+                checked={selectedOptions.includes(option.id)}
+                onChange={() => handleOptionChange(option.id)}
               />
               <span>
                 {option.name} {option.price > 0 && `(+${option.price.toLocaleString()}원)`}

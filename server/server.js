@@ -23,11 +23,16 @@ app.get('/', (req, res) => {
   });
 });
 
-// API 라우트 (추후 구현)
-// app.use('/api/menus', menuRoutes);
-// app.use('/api/orders', orderRoutes);
-// app.use('/api/inventory', inventoryRoutes);
-// app.use('/api/options', optionRoutes);
+// API 라우트
+import menuRoutes from './routes/menuRoutes.js';
+import optionRoutes from './routes/optionRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+import inventoryRoutes from './routes/inventoryRoutes.js';
+
+app.use('/api/menus', menuRoutes);
+app.use('/api/options', optionRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/inventory', inventoryRoutes);
 
 // 404 핸들러
 app.use((req, res) => {
